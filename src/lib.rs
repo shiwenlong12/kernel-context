@@ -156,12 +156,22 @@ impl LocalContext {
 
 #[inline]
 fn build_sstatus(supervisor: bool, interrupt: bool) -> usize {
+
+    #[cfg(feature = "user")] 
+    let mut sstatus:usize = 0000_0000;
+
+    #[cfg(feature = "kernel")] 
     let mut sstatus: usize;
     // 只是读 sstatus，安全的
+    #[cfg(feature = "kernel")] 
     unsafe { core::arch::asm!("csrr {}, sstatus", out(reg) sstatus) };
+
+    
     const PREVILEGE_BIT: usize = 1 << 8;
     const INTERRUPT_BIT: usize = 1 << 5;
     match supervisor {
+        // sstatus = sstatus & !PREVILEGE_BIT,
+        // &按位与运算规则为两个操作数相同位上的值均为1，那么结果的该位上值为1， 否则为0。
         false => sstatus &= !PREVILEGE_BIT,
         true => sstatus |= PREVILEGE_BIT,
     }
@@ -303,7 +313,6 @@ mod tests{
             interrupt: false,
             sepc: 0,
         };
-        (&mut _b).x_mut(1);
 
         assert_eq!(0,_b.x(1));
         assert_eq!(0,*(&mut _b).x_mut(1));
@@ -313,14 +322,19 @@ mod tests{
 
     }
 
-    //use crate::build_sstatus;
+    use crate::build_sstatus;
     #[test]
     fn test_build_sstatus() {
-        //build_sstatus(false,false);
-        //build_sstatus(false,true);
+        let a = build_sstatus(false,false);
+        let b = build_sstatus(false,true);
+        assert_eq!(0, a);
+        assert_eq!(32, b);
     }
 
-    //use crate::foreign::{PortalCache, ForeignContext};
+    #[cfg(feature = "foreign")]
+    use crate::foreign::{PortalCache, ForeignContext};
+    #[cfg(feature = "foreign")]
+    #[cfg(feature = "user")]
     #[test]
     fn test_foreign() {
         // let mut _a = LocalContext::empty();
@@ -330,14 +344,16 @@ mod tests{
         //     /// 目标地址空间。
         //     satp: 0,
         // };
+        let mut protal1 = PortalCache::empty();
+        (&mut protal1).init(2*8, 4*8, 1, true,true);
         
         // execute(&mut _b,);
     }
 
-    #[test]
-    fn test_multislot_portal() {
-        //计算包括 `slots` 个插槽的传送门总长度。
-        //calculate_size(1);
-    }
+    // #[test]
+    // fn test_multislot_portal() {
+    //     //计算包括 `slots` 个插槽的传送门总长度。
+    //     //calculate_size(1);
+    // }
 
 }

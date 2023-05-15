@@ -8,6 +8,9 @@ authors = ["YdrMaster <ydrml@hotmail.com>"]
 
 [features]
 foreign = ["spin"]
+user = []
+kernel = []
 
 [dependencies]
 spin = { version = "0.9", optional = true }
+

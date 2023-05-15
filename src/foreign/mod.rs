@@ -20,6 +20,28 @@ pub struct PortalCache {
 }
 
 impl PortalCache {
+
+    // cfg_if::cfgg_if! {
+    //     if #[cfg(feature = "user")] {
+    //         a = 0;
+    //     } else {
+    
+    //     }
+    // }
+
+    #[cfg(feature = "user")]
+    pub fn empty() -> PortalCache {
+        PortalCache{
+            a0:0,
+            a1:0,
+            satp:0,
+            sstatus:0,
+            sepc:0,
+            stvec:0,
+            sscratch:0,
+        }
+    }
+
     /// 初始化传送门缓存。
     #[inline]
     pub fn init(&mut self, satp: usize, pc: usize, a0: usize, supervisor: bool, interrupt: bool) {
@@ -27,6 +49,7 @@ impl PortalCache {
         self.sepc = pc;
         self.a0 = a0;
         self.sstatus = build_sstatus(supervisor, interrupt);
+        
     }
 
     /// 返回缓存地址。
@@ -185,6 +208,7 @@ impl PortalText {
 
 /// 切换地址空间然后 sret。
 /// 地址空间恢复后一切都会恢复原状。
+#[cfg(feature = "kernel")] 
 #[naked]
 unsafe extern "C" fn foreign_execute(ctx: *mut PortalCache) {
     core::arch::asm!(
