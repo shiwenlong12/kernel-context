@@ -341,6 +341,22 @@
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
 </pre><pre class="rust"><code><span class="doccomment">//! 内核上下文控制。
 
 </span><span class="attr">#![no_std]
@@ -499,13 +515,23 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>build_sstatus(supervisor: bool, interrupt: bool) -&gt; usize {
-    <span class="kw">let </span><span class="kw-2">mut </span>sstatus: usize;
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;user&quot;</span>)] 
+    </span><span class="kw">let </span><span class="kw-2">mut </span>sstatus:usize = <span class="number">0000_0000</span>;
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;kernel&quot;</span>)] 
+    </span><span class="kw">let </span><span class="kw-2">mut </span>sstatus: usize;
     <span class="comment">// 只是读 sstatus，安全的
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;kernel&quot;</span>)] 
     </span><span class="kw">unsafe </span>{ <span class="macro">core::arch::asm!</span>(<span class="string">&quot;csrr {}, sstatus&quot;</span>, out(reg) sstatus) };
+
+    
     <span class="kw">const </span>PREVILEGE_BIT: usize = <span class="number">1 </span>&lt;&lt; <span class="number">8</span>;
     <span class="kw">const </span>INTERRUPT_BIT: usize = <span class="number">1 </span>&lt;&lt; <span class="number">5</span>;
     <span class="kw">match </span>supervisor {
-        <span class="bool-val">false </span>=&gt; sstatus &amp;= !PREVILEGE_BIT,
+        <span class="comment">// sstatus = sstatus &amp; !PREVILEGE_BIT,
+        // &amp;按位与运算规则为两个操作数相同位上的值均为1，那么结果的该位上值为1， 否则为0。
+        </span><span class="bool-val">false </span>=&gt; sstatus &amp;= !PREVILEGE_BIT,
         <span class="bool-val">true </span>=&gt; sstatus |= PREVILEGE_BIT,
     }
     <span class="kw">match </span>interrupt {
@@ -646,7 +672,6 @@
             interrupt: <span class="bool-val">false</span>,
             sepc: <span class="number">0</span>,
         };
-        (<span class="kw-2">&amp;mut </span>_b).x_mut(<span class="number">1</span>);
 
         <span class="macro">assert_eq!</span>(<span class="number">0</span>,_b.x(<span class="number">1</span>));
         <span class="macro">assert_eq!</span>(<span class="number">0</span>,<span class="kw-2">*</span>(<span class="kw-2">&amp;mut </span>_b).x_mut(<span class="number">1</span>));
@@ -656,28 +681,35 @@
 
     }
 
-    <span class="comment">//use crate::build_sstatus;
-    // #[test]
-    // fn test_build_sstatus() {
-    //     //build_sstatus(false,false);
-    //     //build_sstatus(false,true);
-    // }
+    <span class="kw">use </span><span class="kw">crate</span>::build_sstatus;
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_build_sstatus() {
+        <span class="kw">let </span>a = build_sstatus(<span class="bool-val">false</span>,<span class="bool-val">false</span>);
+        <span class="kw">let </span>b = build_sstatus(<span class="bool-val">false</span>,<span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, a);
+        <span class="macro">assert_eq!</span>(<span class="number">32</span>, b);
+    }
 
-    // //use crate::foreign::{PortalCache, ForeignContext};
-    // #[test]
-    // fn test_foreign() {
-    //     // let mut _a = LocalContext::empty();
-    //     // let mut _b = ForeignContext {
-    //     //     /// 目标地址空间上的线程上下文。
-    //     //     context: _a,
-    //     //     /// 目标地址空间。
-    //     //     satp: 0,
-    //     // };
+    <span class="attr">#[cfg(feature = <span class="string">&quot;foreign&quot;</span>)]
+    </span><span class="kw">use </span><span class="kw">crate</span>::foreign::{PortalCache, ForeignContext};
+    <span class="attr">#[cfg(feature = <span class="string">&quot;foreign&quot;</span>)]
+    #[cfg(feature = <span class="string">&quot;user&quot;</span>)]
+    #[test]
+    </span><span class="kw">fn </span>test_foreign() {
+        <span class="comment">// let mut _a = LocalContext::empty();
+        // let mut _b = ForeignContext {
+        //     /// 目标地址空间上的线程上下文。
+        //     context: _a,
+        //     /// 目标地址空间。
+        //     satp: 0,
+        // };
+        </span><span class="kw">let </span><span class="kw-2">mut </span>protal1 = PortalCache::empty();
+        (<span class="kw-2">&amp;mut </span>protal1).init(<span class="number">2</span><span class="kw-2">*</span><span class="number">8</span>, <span class="number">4</span><span class="kw-2">*</span><span class="number">8</span>, <span class="number">1</span>, <span class="bool-val">true</span>,<span class="bool-val">true</span>);
         
-    //     // execute(&amp;mut _b,);
-    // }
+        <span class="comment">// execute(&amp;mut _b,);
+    </span>}
 
-    // #[test]
+    <span class="comment">// #[test]
     // fn test_multislot_portal() {
     //     //计算包括 `slots` 个插槽的传送门总长度。
     //     //calculate_size(1);

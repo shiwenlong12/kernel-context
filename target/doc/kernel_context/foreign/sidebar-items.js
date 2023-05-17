@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ForeignContext","异界线程上下文。"],["MultislotPortal","包含多个插槽的异界传送门。"],["PortalCache","传送门缓存。"],["TpReg","从 `tp` 寄存器读取一个序号。"]],"trait":[["ForeignPortal","异界传送门。"],["MonoForeignPortal","整体式异界传送门。"],["SlotKey","插槽选项。"]]};

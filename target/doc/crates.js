@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["kernel_context"];
+window.ALL_CRATES = ["kernel_context","lock_api","scopeguard","spin"];

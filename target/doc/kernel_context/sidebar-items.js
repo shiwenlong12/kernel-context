@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["LocalContext","线程上下文。"]]};
+window.SIDEBAR_ITEMS = {"mod":[["foreign","不同地址空间的上下文控制。"]],"struct":[["LocalContext","线程上下文。"]]};
